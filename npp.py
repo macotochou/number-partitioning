@@ -14,6 +14,7 @@
 
 ## ------- import packages -------
 from dwave.system import DWaveSampler, EmbeddingComposite
+from collections import defaultdict
 
 # TODO:  Add code here to define your QUBO dictionary
 def get_qubo(S):
@@ -22,11 +23,23 @@ def get_qubo(S):
     Args:
         S(list of integers): represents the numbers being partitioned
     """
-
-    Q = {}
-
+    Q = defaultdict(int)
+    C = sum(S)
     # Add QUBO construction here
-    
+    for i in range(len(S)):
+        Q[(i,i)] = -4*C*S[i] + 4*S[i]**2
+        for j in range(i+1, len(S)):
+            Q[(i,j)] = 8*S[i]*S[j]
+
+    '''Q = {(0,0):-14100, (0,1):1400, (0,2): 2600, (0,3): 6200, (0,4): 8400, (0,5): 3400, (0,6):4200, (0,7):2000, \
+                       (1,1):-4452, (1,2):728, (1,3):1736, (1,4):2352, (1,5):952, (1,6):1176, (1,7):560, \
+                                    (2,2):-7956, (2,3):3224, (2,4):4368, (2,5):1768, (2,6):2184, (2,7):1040, \
+                                                 (3,3):-16740, (3,4):10416, (3,5):4216, (3,6):5208, (3,7):2480, \
+                                                               (4,4):-20832, (4,5):5712, (4,6):7056, (4,7):3360, \
+                                                                             (5,5):-10132, (5,6):2856, (5,7):1360, \
+                                                                                           (6,6):-12180, (6,7):1680, \
+                                                                                                         (7,7):-6240}'''
+    print(Q)
     return Q
 
 # TODO:  Choose QPU parameters in the following function
@@ -38,11 +51,12 @@ def run_on_qpu(Q, sampler):
         sampler(dimod.Sampler): a sampler that uses the QPU
     """
 
-    chainstrength = 1 # update
-    numruns = 1 # update
+    chainstrength = 20000 # update
+    # chain_strength=chainstrength
+    numruns = 1000 # update
 
-    sample_set = sampler.sample_qubo(Q, chain_strength=chainstrength, num_reads=numruns, label='Training - Number Partitioning')
-
+    sample_set = sampler.sample_qubo(Q, num_reads=numruns, chain_strength=chainstrength, label='Training - Number Partitioning')
+    
     return sample_set
 
 
